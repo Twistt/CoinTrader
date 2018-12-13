@@ -1,4 +1,4 @@
-﻿using ACPROTO.ACT.Models;
+using ACPROTO.ACT.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,24 +19,33 @@ namespace ACPROTO.ACT
         static bool needUpdateUI = false;
         static bool marketQueryRunning = false;
         decimal BTCValue = 0.00m;
+        IExchange Exchange = null;
         public ACT()
         {
             InitializeComponent();
         }
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object sender, EventArgs e)
         {
+            Exchange = new BinanceWrapper();
+            
+
             //Get a list of all coins (and whether we have any)
-            Exchange.GetBalances();
+            await Exchange.GetBalances();
+
             var usdt = Coin.AllCoins.Where(c => c.Currency == "USDT").FirstOrDefault();
             var btc = Coin.AllCoins.Where(c => c.Currency == "BTC").FirstOrDefault();
             //Get a list of all the stuff we ahve bought and sold (to establish profit and baseline)
-            Exchange.GetOrderHistory();
-            foreach (var coin in Coin.AllCoins.Where(c => c.Balance > 0 && c.Currency != "BTC" && c.Currency != "USDT"))
+            //await Exchange.GetOrderHistory();
+            foreach (var coin in Coin.AllCoins.Where(c => c.Balance > 0))
             {
                 var mostrecentorder = Order.AllOrders.Where(o => o.Exchange == "BTC-" + coin.Currency).OrderByDescending(o => o.TimeStamp).FirstOrDefault();
                 if (mostrecentorder != null) coin.LastPurchasePrice = mostrecentorder.PricePerUnit;
-                Exchange.UpdateTickers(coin);
-                flowLayoutPanel1.Controls.Add(CreateCurrencyGroup(coin));
+                await Exchange.UpdateTickers(coin);
+                try
+                {
+                    flowLayoutPanel1.Controls.Add(CreateCurrencyGroup(coin));
+                }
+                catch (Exception) { }
             }
             FillOrders();
             FillAlerts();
@@ -44,9 +53,11 @@ namespace ACPROTO.ACT
             timerTicker.Start();
             timerUpdateCurrencies.Tick += TimerUpdateCurrencies_Tick;
             timerUpdateCurrencies.Start();
+
             //This handles new currencies (trading on the exchange and not through this interface)
-            BTCValue = Coin.AllCoins.Where(c=>c.Currency == "BTC").First().ValueInUSD;
+            if (Coin.AllCoins.Count > 0) BTCValue = Coin.AllCoins.Where(c=>c.Currency == "BTC").First().ValueInUSD;
             this.Text = "CryptoDayTrader BTC:" + BTCValue;
+
             lblTotalPortfolioValueUSD.Text = "Total Value in USD: $" + Math.Round(Coin.AllCoins.Sum(c => (c.LastPurchasePrice * c.Balance) * BTCValue), 4).ToString();
             lblTotalPortfolioValueBTC.Text = "Total Value in BTC: " + Coin.AllCoins.Sum(c => (c.LastPurchasePrice * c.Balance)).ToString();
             Task.Factory.StartNew(()=> { 
@@ -66,7 +77,7 @@ namespace ACPROTO.ACT
         }
         private Chart GenerateChart(Coin coin)
         {
-            if (coin.Currency == "BTC" || coin.Currency == "USDT") return null;
+            //if (coin.Currency == "BTC" || coin.Currency == "USDT") return null;
             Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series
             {
                 Name = "Series_" + coin.Currency,
@@ -142,7 +153,7 @@ namespace ACPROTO.ACT
         }
         private GroupBox CreateCurrencyGroup(Coin coin)
         {
-            if ((coin.ValueInUSD * coin.Balance) < 1) return null;
+            //if ((coin.ValueInUSD * coin.Balance) < 1) return null;
             GroupBox gbCurrency = new System.Windows.Forms.GroupBox();
             PictureBox pictureBox1 = new System.Windows.Forms.PictureBox()
             {
@@ -313,7 +324,7 @@ namespace ACPROTO.ACT
             Label btnBuy = new Label { Text = "Buy", Location = new System.Drawing.Point(5, 95), Size = new System.Drawing.Size(56, 20), FlatStyle = FlatStyle.Flat, BorderStyle = BorderStyle.FixedSingle };
             btnBuy.Click += (o, ev) =>
             {
-                Exchange.SubmitBuyOrder(coin);
+                Exchange.SubmitBuyOrder(coin, coin.Balance);
             };
 
             Label btnSell10percent = new Label { Text = "Sell@10%", Location = new System.Drawing.Point(5, 115), Size = new System.Drawing.Size(56, 20), FlatStyle = FlatStyle.Flat, BorderStyle = BorderStyle.FixedSingle };
@@ -330,7 +341,7 @@ namespace ACPROTO.ACT
             panel1.Size = new System.Drawing.Size(195, 121);
             panel1.TabIndex = 6;
 
-            panel1.Controls.Add(GenerateChart(coin));
+            //panel1.Controls.Add(GenerateChart(coin));
             gbCurrency.Controls.Add(btnSell10percent);
             gbCurrency.Controls.Add(panel1);
             //gbCurrency.Controls.Add(button1);
@@ -401,7 +412,7 @@ namespace ACPROTO.ACT
                     flowLayoutPanel1.Controls.Remove(gb);
                 }
             }
-            foreach (var coin in Coin.AllCoins.Where(c => c.Balance > 0 && c.Currency != "BTC" && c.Currency != "USDT" && (c.Balance * c.ValueInUSD) > 1))
+            foreach (var coin in Coin.AllCoins.Where(c => c.Balance > 0))
             {
                 GroupBox gb = (GroupBox)flowLayoutPanel1.Controls["gb" + coin.Currency];
                 if (gb != null && coin.TickerData.Count > 0)
@@ -469,7 +480,16 @@ namespace ACPROTO.ACT
                 });
 
             }
-            if (needUpdateUI) UpdateUI();
+            if (needUpdateUI)
+            {
+                try
+                {
+                    UpdateUI();
+                }
+                catch (Exception err) {
+                    
+                }
+            }
         }
     }
 }
