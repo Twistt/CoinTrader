@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1E722877-C586-49E5-9599-04EDF2A77CAB}</ProjectGuid>
+    <ProjectGuid>{C8D74937-7911-410A-A004-9BF6B1B1ADFE}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>ACPROTO.ACT</RootNamespace>
-    <AssemblyName>ACPROTO.ACT</AssemblyName>
+    <RootNamespace>BinanceAutoTrader</RootNamespace>
+    <AssemblyName>BinanceAutoTrader</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,16 +34,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Binance.API.Csharp.Client, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.dll</HintPath>
+      <HintPath>..\CryptoDNC\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.dll</HintPath>
     </Reference>
     <Reference Include="Binance.API.Csharp.Client.Domain, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.Domain.dll</HintPath>
+      <HintPath>..\CryptoDNC\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Binance.API.Csharp.Client.Models, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.Models.dll</HintPath>
+      <HintPath>..\CryptoDNC\packages\Binance.API.Csharp.Client.1.4.0\lib\net46\Binance.API.Csharp.Client.Models.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\CryptoDNC\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,27 +59,21 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="websocket-sharp, Version=1.0.2.32519, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocketSharp-NonPreRelease.1.0.0\lib\net35\websocket-sharp.dll</HintPath>
+      <HintPath>..\CryptoDNC\packages\WebSocketSharp-NonPreRelease.1.0.0\lib\net35\websocket-sharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Binance.cs" />
-    <Compile Include="Bittrex.cs" />
-    <Compile Include="Encryption.cs" />
-    <Compile Include="ACT.cs">
+    <Compile Include="Currency.cs" />
+    <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ACT.Designer.cs">
-      <DependentUpon>ACT.cs</DependentUpon>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Models\Candle.cs" />
-    <Compile Include="Models\Coin.cs" />
-    <Compile Include="Models\Market.cs" />
-    <Compile Include="Models\Order.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="ACT.resx">
-      <DependentUpon>ACT.cs</DependentUpon>
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -89,7 +84,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Models\IExchange.cs" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

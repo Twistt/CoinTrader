@@ -3,3 +3,17 @@
 ################################################################################
 
 /.vs/ACPROTO.ACT/v15
+/ACPROTO.ACT/bin/Debug
+/packages
+/ACPROTO.ACT/obj/Debug
+/CryptoDNC/bin
+/CryptoDNC/obj
+/CryptoDNC/packages
+/BinanceAutoTrader/bin/Debug
+/BinanceAutoTrader/obj/Debug
+/CryptoDNC/.vs/CryptoDNC/v15/.suo
+/CryptoDNC/.vs/CryptoDNC/v15/Server/sqlite3/db.lock
+/CryptoDNC/.vs/CryptoDNC/v15/Server/sqlite3/storage.ide
+/CryptoDNC/.vs/CryptoDNC/v15/Server/sqlite3/storage.ide-shm
+/CryptoDNC/.vs/CryptoDNC/v15/Server/sqlite3/storage.ide-wal
+/CryptoDNC/.vs/CryptoDNC/DesignTimeBuild/.dtbcache

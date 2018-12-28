@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ACPROTO.ACT.Models;
 using Binance.API.Csharp.Client;
+using Binance.API.Csharp.Client.Models.Enums;
 using Binance.API.Csharp.Client.Models.Market;
 using Binance.API.Csharp.Client.Utils;
 using Newtonsoft.Json;
@@ -28,9 +29,7 @@ namespace ACPROTO.ACT
         public BinanceWrapper() {
             var apiClient = new ApiClient("z3ZYAyTdnIfPqNq0AkRviMKdTDF36GknKofFnQ5J0LrxQOdcfvuBVgNVBE4vBaCI", "YGWPMVcjZVVHaiSDxNH3n7GaII3lrvNoTWefmNkq5T2b9wqXe2ibT3GIHTQukoV3");
             var binanceClient = new BinanceClient(apiClient);
-
-
-           
+         
             var test = bin.GetOrderBook("TRXBTC");
             var test2 = bin.GetAccountInfo();
 
@@ -69,7 +68,11 @@ namespace ACPROTO.ACT
         {
             return null;
         }
-
+        public async Task<List<Candlestick>> GetCandlesticks(string market, TimeInterval time)
+        {
+            var sticks = await bin.GetCandleSticks(market, time) ;
+            return sticks.ToList();
+        }
 
         public async Task<List<Order>> GetOrderHistory()
         {
@@ -116,13 +119,13 @@ namespace ACPROTO.ACT
             throw new NotImplementedException();
         }
 
-        public async Task<Ticker> UpdateTickers(Coin coin)
+        public async Task<TickerData> UpdateTickers(Coin coin)
         {
-            var res =await bin.GetOrderBookTicker();
-            foreach (var item in res)
+            var tickerPrices = await bin.GetAllPrices();
+            foreach (var item in tickerPrices.ToList())
             {
-                var acoin = Coin.AllCoins.Where(c => c.Currency == coin.Currency).FirstOrDefault();
-                var ticker = new Ticker() { Ask = item.AskPrice, Bid = item.BidPrice, Last = item.AskPrice, Quantity = item.AskQuantity };
+                var acoin = Coin.AllCoins.Where(c => c.MarketName == coin.Currency).FirstOrDefault();
+                coin.ValueInBTC = item.Price;
                 acoin.TickerData.Add(ticker);
                 if (coin.Currency == item.Symbol) {
                     coin.TickerData.Add(ticker);

@@ -1,4 +1,5 @@
 using ACPROTO.ACT.Models;
+using Binance.API.Csharp.Client.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -40,15 +41,16 @@ namespace ACPROTO.ACT
             {
                 var mostrecentorder = Order.AllOrders.Where(o => o.Exchange == "BTC-" + coin.Currency).OrderByDescending(o => o.TimeStamp).FirstOrDefault();
                 if (mostrecentorder != null) coin.LastPurchasePrice = mostrecentorder.PricePerUnit;
-                await Exchange.UpdateTickers(coin);
+                var candlestick = await Exchange.GetCandleSticks(market, TimeInterval.Minutes_15);
+                c.Candles.AddRange(candlestick);
                 try
                 {
                     flowLayoutPanel1.Controls.Add(CreateCurrencyGroup(coin));
                 }
                 catch (Exception) { }
             }
-            FillOrders();
-            FillAlerts();
+            //FillOrders();
+            //FillAlerts();
             timerTicker.Tick += UpdateCurrencyTickers;
             timerTicker.Start();
             timerUpdateCurrencies.Tick += TimerUpdateCurrencies_Tick;
