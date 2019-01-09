@@ -34,7 +34,7 @@ namespace CrudeMonitoring
 
         public static List<Coin> AllCoins = new List<Coin>();
         public Chart chart = null;
-        public List<Candlestick> Candles = new List<Candlestick>();
+        public List<CandleStick> Candles = new List<CandleStick>();
 
         public static Coin GetCurrencyValue(Coin coin)
         {

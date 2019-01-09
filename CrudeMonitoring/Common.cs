@@ -49,5 +49,11 @@ namespace CrudeMonitoring
             }
             return responseData;
         }
+        public static DateTime FromUnixTime(long unixTime)
+        {
+            var date = DateTimeOffset.FromUnixTimeMilliseconds(unixTime).UtcDateTime;
+            return date;
+        }
+
     }
 }
