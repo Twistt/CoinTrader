@@ -1,0 +1,118 @@
+//@version=2
+//study("Fibonacci Levels", shorttitle="Fibs", overlay=true)
+strategy(title = "FiBONENacci Strategy", shorttitle = "FiBONENacci Strategy", overlay = true, pyramiding = 0, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, currency = currency.USD,slippage=1,scale=scale.right)
+
+delta = input(8, "Trailing Stop (#ATR)")
+
+
+// === INPUT BACKTEST RANGE ===
+FromMonth = input(defval = 1, title = "From Month", minval = 1, maxval = 12)
+FromDay   = input(defval = 1, title = "From Day", minval = 1, maxval = 31)
+FromYear  = input(defval = 2018, title = "From Year", minval = 1914)
+ToMonth   = input(defval = 1, title = "To Month", minval = 1, maxval = 12)
+ToDay     = input(defval = 1, title = "To Day", minval = 1, maxval = 31)
+ToYear    = input(defval = 9999, title = "To Year", minval = 2017)
+per = input(40, "ATR Days Lookback")
+//start     = timestamp(FromYear, FromMonth, FromDay, 00, 00)  // backtest start window
+//finish    = timestamp(ToYear, ToMonth, ToDay, 23, 59)        // backtest finish window
+//window()  => time >= start and time <= finish ? true : false // create function "within window of time"
+
+testPeriodStart = timestamp(FromYear,FromMonth,FromDay,0,0)
+testPeriodStop = timestamp(ToYear,ToMonth,ToDay,0,0)
+testPeriod() =>
+    time >= testPeriodStart and time <= testPeriodStop ? true : false
+
+highestHigh = highest(high,per)
+lowestLow = lowest(low,per)
+
+fib1 = highestHigh
+fib786 = highestHigh - ((highestHigh - lowestLow) * 0.214)
+fib618 = highestHigh - ((highestHigh - lowestLow) * 0.382)
+fib50 =  highestHigh -((highestHigh - lowestLow) * 0.500)
+fib382 = highestHigh -((highestHigh - lowestLow) * 0.618)
+fib236 =  highestHigh -((highestHigh - lowestLow) * 0.764)
+fib0 = lowestLow
+
+w = input(defval=-4.6, title="Coefficient (if FRAMA)")
+
+frama(a, b) =>
+    n3    = (highest(high, b) - lowest(low, b))/b
+    hd2   = highest(high, b/2)
+    ld2   = lowest(low, b/2)
+    n2    = (hd2 - ld2)/(b/2)
+    n1    = (hd2[b/2] - ld2[b/2])/(b/2)
+    dim   = (n1 > 0) and (n2 > 0) and (n3 > 0) ? (log(n1 + n2) - log(n3))/log(2) : 0
+    alpha = exp(w*(dim - 1))
+    sc    = (alpha < 0.01 ? 0.01 : (alpha > 1 ? 1 : alpha))
+    frama = cum(1)<=2*b ? a : (a*sc) + nz(frama[1])*(1 - sc)
+
+ffb1 = frama(fib1,per)
+ffb786 = frama(fib786,per)
+ffb618 = frama(fib618,per)
+ffb50 = frama(fib50,per),
+ffb382 = frama(fib382,per)
+ffb236 = frama(fib236,per)
+ffb0 = frama(fib0,per)
+
+    
+band1f =   plot(ffb1, "1", gray,2, solid)
+band786f = plot(ffb786, "0.786",#006666 ,2, solid)
+band618f = plot(ffb618, "0.618", #009999,2, solid)
+band500f = plot(ffb50, "0.500", green,3, solid)
+band382f = plot(ffb382, ".382", olive,2, solid)
+band236f = plot(ffb236, ".236", red,2, solid)
+band0f =   plot(ffb0, "0", gray,2, solid)
+
+//band1 = plot(fib1, "1", red,1, solid)
+//band618 = plot(fib618, ".618", purple,2, solid)
+//band500 = plot(fib50, ".500", green,3, solid)
+//band382 = plot(fib382, "1", blue,1, solid)
+//band236 = plot(fib236, ".618", olive,2, solid)
+//band0 = plot(fib0, ".500", teal,3, solid)
+
+fill(band1f,band786f, color = color(gray,90))
+fill(band618f,band786f, color = color(#006666,90))
+fill(band618f,band382f, color = color(#009999,90))
+fill(band382f,band236f, color = color(olive,90))
+fill(band236f,band0f, color = color(red,90)) 
+
+stopval=ema(close,6)
+atr=sma((high-low),15)
+
+longfib0 = (low[0] <= ffb0[0] or low[1] <= ffb0[1] or low[2] <= ffb0[2] or low[3] <= ffb0[3]) and close >= (ffb236 + ffb0) / 2 ?true:false 
+longfib236 = (low[0] <= ffb236[0] or low[1] <= ffb236[1] or low[2] <= ffb236[2] or low[3] <= ffb236[3]) and close >= (ffb236 + ffb382) / 2  ?true:false 
+longfib382 = (low[0] <= ffb382[0] or low[1] <= ffb382[1] or low[2] <= ffb382[2] or low[3] <= ffb382[3]) and close >= (ffb618 + ffb382) / 2 ?true:false 
+//longfib50 = (hl2[0] <= ffb50[0] or hl2[1] <= ffb50[1] or hl2[2] <= ffb50[2] or hl2[3] <= ffb50[3]) and close >= ffb618 ?true:false 
+
+short =  close  < wma(low,7) ?true:false 
+//long = (hl2[0] <= ffb0[0] or hl2[1] <= ffb0[1] or hl2[2] <= ffb0[2] or hl2[3] <= ffb0[3]) and close >= ffb236 ?true:false 
+
+long = longfib0 or longfib236 or longfib382 
+//strategy.exit("Stop Loss/TP","Simple SMA Entry", stop=stop_level)
+//strategy.entry(id = "Long", long = true, when = window() and long) // use function or simple condition to decide when to get in
+//strategy.close(id = "Long", when = window() and short)
+
+
+
+inlong=0
+buy=0
+stop=0
+
+if testPeriod()
+    if (inlong[1])
+        inlong:=inlong[1]
+        buy:=close
+        stop:=iff((stopval>(stop[1]+delta*atr)),stopval-delta*atr,stop[1])
+    if (long) and (not inlong[1])
+        strategy.entry("buy",strategy.long)
+        inlong:=close
+        buy:=close
+        stop:=stopval-delta*atr
+//plot(buy,color=iff(close<inlong,red,lime),style=columns,transp=90,linewidth=1)
+//plot(stop,color=iff((short or (stopval<stop)) and (close<inlong),red,lime),style=columns,transp=60,linewidth=1)
+if testPeriod()
+    if (short or (stopval<stop)) and (inlong[1])
+        strategy.close("buy")
+        inlong:=0
+        stop:=0
+        buy:=0
