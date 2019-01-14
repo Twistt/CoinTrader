@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Binance.API.Csharp.Client" Version="1.4.0" />
+    <PackageReference Include="Binance.API.Csharp.Client" Version="1.4.0"/>
+    <PackageReference Include="Trady.Core" Version="*"/>
+    <PackageReference Include="Trady.Analysis" Version="*"/>
   </ItemGroup>
-
 </Project>
