@@ -1,0 +1,164 @@
+////Fibonnaci relevent code
+
+/////////////// Short Range Calculations and Plotting ///////////////////
+highestHighperShortRange = highest(high,perShortRange)
+lowestLowperShortRange = lowest(low,perShortRange)
+
+shortRange_fib1 = highestHighperShortRange
+shortRange_fib786 = highestHighperShortRange - ((highestHighperShortRange - lowestLowperShortRange) * 0.214)
+shortRange_fib618 = highestHighperShortRange - ((highestHighperShortRange - lowestLowperShortRange) * 0.382)
+shortRange_fib50 =  highestHighperShortRange -((highestHighperShortRange - lowestLowperShortRange) * 0.500)
+shortRange_fib382 = highestHighperShortRange -((highestHighperShortRange - lowestLowperShortRange) * 0.618)
+shortRange_fib236 =  highestHighperShortRange -((highestHighperShortRange - lowestLowperShortRange) * 0.764)
+shortRange_fib0 = lowestLowperShortRange
+
+shortRange_ffb1 = sma(shortRange_fib1,perShortRange)
+shortRange_ffb786 = sma(shortRange_fib786,perShortRange)
+shortRange_ffb618 = sma(shortRange_fib618,perShortRange)
+shortRange_ffb50 = sma(shortRange_fib50,perShortRange),
+shortRange_ffb382 = sma(shortRange_fib382,perShortRange)
+shortRange_ffb236 = sma(shortRange_fib236,perShortRange)
+shortRange_ffb0 = sma(shortRange_fib0,perShortRange)
+
+//////////Long Range Fib Calculations and Plotting //////////////////
+ 
+highestHighperLongRange = highest(high,perLongRange)
+lowestLowperLongRange = lowest(low,perLongRange)
+
+longRange_fib1 = highestHighperLongRange
+longRange_fib786 = highestHighperLongRange - ((highestHighperLongRange - lowestLowperLongRange) * 0.214)
+longRange_fib618 = highestHighperLongRange - ((highestHighperLongRange - lowestLowperLongRange) * 0.382)
+longRange_fib50 =  highestHighperLongRange -((highestHighperLongRange - lowestLowperLongRange) * 0.500)
+longRange_fib382 = highestHighperLongRange -((highestHighperLongRange - lowestLowperLongRange) * 0.618)
+longRange_fib236 =  highestHighperLongRange -((highestHighperLongRange - lowestLowperLongRange) * 0.764)
+longRange_fib0 = lowestLowperLongRange
+
+longRange_ffb1 = sma(  longRange_fib1,   perLongRange)
+longRange_ffb786 = sma(longRange_fib786, perLongRange)
+longRange_ffb618 = sma(longRange_fib618, perLongRange)
+longRange_ffb50 = sma( longRange_fib50,  perLongRange)
+longRange_ffb382 = sma(longRange_fib382, perLongRange)
+longRange_ffb236 = sma(longRange_fib236, perLongRange)
+longRange_ffb0 = sma(  longRange_fib0,perLongRange)
+
+
+
+
+/////BONE SCALP///
+
+
+//@version=2
+strategy(title = "Bone Funkenstein Scalp Strategy", shorttitle = "Bone Funkenstein Scalp Strategy", overlay = false, pyramiding = 0, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, currency = currency.USD)
+
+// === INPUT BACKTEST RANGE ===
+FromMonth = input(defval = 1, title = "From Month", minval = 1, maxval = 12)
+FromDay   = input(defval = 1, title = "From Day", minval = 1, maxval = 31)
+FromYear  = input(defval = 2018, title = "From Year", minval = 1914)
+ToMonth   = input(defval = 1, title = "To Month", minval = 1, maxval = 12)
+ToDay     = input(defval = 1, title = "To Day", minval = 1, maxval = 31)
+ToYear    = input(defval = 9999, title = "To Year", minval = 2017)
+atrDays = input(7, "ATR Days Lookback")
+theAtr = atr(atrDays)
+atrModifier = input(1.1, "ATR Modifier")
+//plot(atr * atrModifier, title="ATR")
+//plot(stopLoss, title="Stop Loss", trackprice=true, linewidth=1, color=red, trackprice=true)
+
+// === FUNCTION EXAMPLE ===
+start     = timestamp(FromYear, FromMonth, FromDay, 00, 00)  // backtest start window
+finish    = timestamp(ToYear, ToMonth, ToDay, 23, 59)        // backtest finish window
+window()  => time >= start and time <= finish ? true : false // create function "within window of time"
+
+/////////////////////  DMI  //////////////////////////////
+adxlen = input(14, title="ADX Smoothing")
+dilen = input(14, title="DI Length")
+dirmov(len) =>
+	up = change(high)
+	down = -change(low)
+	truerange = rma(tr, len)
+	plus = fixnan(100 * rma(up > down and up > 0 ? up : 0, len) / truerange)
+	minus = fixnan(100 * rma(down > up and down > 0 ? down : 0, len) / truerange)
+	[plus, minus]
+    
+adx(dilen, adxlen) => 
+	[plus, minus] = dirmov(dilen)
+
+	sum = plus + minus
+	adx = 100 * rma(abs(plus - minus) / (sum == 0 ? 1 : sum), adxlen)
+	[adx, plus, minus]
+
+[sig, up, down] = adx(dilen, adxlen)
+drow=1
+
+///////////////PVI///////////////////////
+EMA_Len = input(21, minval=1)
+xROC = roc(close, 1)
+nRes = iff(volume > volume[1], nz(nRes[1], 0) + xROC, nz(nRes[1], 0))
+nResEMA = ema(nRes, EMA_Len)
+srow = 2
+
+
+//////////MACD/////////////////
+fastLength = input(10, minval=1)
+slowLength = input(20,minval=1)
+signalLength=input(15,minval=1)
+fastMA = ema(close, fastLength)
+slowMA = ema(close, slowLength)
+macd = fastMA - slowMA
+signal = sma(macd, signalLength)
+histo = macd - signal
+pos = iff(signal < macd , 1,iff(signal > macd, -1, nz(pos[1], 0))) 
+mrow = 3
+
+////////////// Rigor ////////////////////////////
+p = input(14, title="Volitility Rigor Length")
+CO=close-open
+HL=high-low 
+value1 = (CO + 2*CO[1] + 2*CO[2] + CO[3])/6
+value2 = (HL + 2*HL[1] + 2*HL[2] + HL[3])/6
+num=sum(value1,p)
+denom=sum(value2,p)
+RVI=denom!=0?num/denom:0
+RVIsig=(RVI+ 2*RVI[1] + 2*RVI[2] + RVI[3])/6
+rrow = 4
+
+change = change(close)
+gain = change >= 0 ? change : 0.0
+loss = change < 0 ? (-1) * change : 0.0
+avgGain = rma(gain, 14)
+avgLoss = rma(loss, 14)
+rs = avgGain / avgLoss
+rsi = 100 - (100 / (1 + rs))
+rsiRMean = rma(rsi,7)
+xrow = 5
+trow = 0
+dtrue = up >= down 
+strue = nRes > nResEMA
+mtrue = signal < macd
+rtrue = RVI > RVIsig  
+xtrue = rsi > rsiRMean and rsi > 40
+
+stopLoss = close - (theAtr * atrModifier)
+highestloss = highest(stopLoss,7)
+isStop = highestloss > close
+sl_inp = input(1.0, title='Stop Loss %', type=float)/100
+stop_level = strategy.position_avg_price * (1 - sl_inp)
+hh = sma(close, 3)
+dI = dtrue?1:0
+sI = strue?1:0
+mI = mtrue?1:0
+rI = rtrue?1:0
+xI = xtrue?2:0
+stop =   dI + sI + mI + rI + xI <= 2?true:false 
+go = dI + sI + mI + rI + xI >= 5?true:false 
+strategy.exit("Stop Loss/TP","Simple SMA Entry", stop=stop_level)
+strategy.entry(id = "Long", long = true, when = window() and go and go != go[1]) // use function or simple condition to decide when to get in
+strategy.close(id = "Long", when = window() and stop and stop != stop[1])
+
+alertcondition(go or stop, title="Buy/Sell Alert" )
+plotshape(rrow,title="Vigor", style=shape.square, color=rtrue ? green : red,location=location.absolute,size=size.small)
+plotshape(xrow,title="Strength", style=shape.square, color=xtrue ? green : red,location=location.absolute,size=size.small)
+plotshape(drow,title="Vector", style=shape.square, color=dtrue ? green : red,location=location.absolute,size=size.small)
+plotshape(srow,title="Potential", style=shape.square, color=strue ? green : red,location=location.absolute,size=size.small)//plotshape(mrow,title="Momentum", style=shape.square, color=pos == -1 ? red: pos == 1 ? green : red,location=location.absolute,size=size.normal)
+plotshape(mrow,title="Momentum", style=shape.square, color=mtrue? green : red,location=location.absolute,size=size.small)
+plotshape(trow,title="Buy/Sell Signals", style=shape.square, color=go?green:stop?red:yellow,location=location.absolute,size=size.small)//plotshape(trow,title="omentum", style=shape.square, color=go?green:stop?red:yellow,location=location.absolute,size=size.normal)
+
